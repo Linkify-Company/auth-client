@@ -95,7 +95,9 @@ func (s *Service) Ping(log logger.Logger) (string, errify.IError) {
 		return "", errify.NewInternalServerError(fmt.Sprintf("auth service not found (code: %d/%s)", resp.StatusCode, resp.Status), "Ping/Do")
 	}
 	pong := struct {
-		Message string `json:"message"`
+		Value struct {
+			Message string `json:"message"`
+		} `json:"value"`
 	}{}
 	err = json.NewDecoder(resp.Body).Decode(&pong)
 	if err != nil {
@@ -103,7 +105,7 @@ func (s *Service) Ping(log logger.Logger) (string, errify.IError) {
 	}
 
 	logHttpResponse(resp, log)
-	return pong.Message, nil
+	return pong.Value.Message, nil
 }
 
 func logHttpResponse(resp *http.Response, log logger.Logger) {
