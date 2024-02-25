@@ -75,6 +75,37 @@ func (s *Service) Check(r *http.Request, log logger.Logger) (*AuthData, errify.I
 	return &auth.Value, nil
 }
 
+func (s *Service) Ping(log logger.Logger) (string, errify.IError) {
+	client := &http.Client{Timeout: s.timeout}
+	req, err := http.NewRequest(
+		http.MethodGet,
+		fmt.Sprint(s.host, s.port, "/srv-auth/api/v1/auth/check"),
+		nil,
+	)
+	if err != nil {
+		return "", errify.NewInternalServerError(err.Error(), "Ping/NewRequest").SetDetails("Auth service not found")
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", errify.NewInternalServerError(err.Error(), "Ping/Do").SetDetails("Auth service not found")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", errify.NewInternalServerError(fmt.Sprintf("auth service not found (code: %d/%s)", resp.StatusCode, resp.Status), "Ping/Do")
+	}
+	pong := struct {
+		Message string `json:"message"`
+	}{}
+	err = json.NewDecoder(resp.Body).Decode(&pong)
+	if err != nil {
+		return "", errify.NewInternalServerError(err.Error(), "Ping/NewDecoder")
+	}
+
+	logHttpResponse(resp, log)
+	return pong.Message, nil
+}
+
 func logHttpResponse(resp *http.Response, log logger.Logger) {
 	log.Debugf("\n{\n  URL: %s\n  METHOD: %s\n  CODE: %d\n  CODE_STRING: %s\n}\n", resp.Request.URL, resp.Request.Method, resp.StatusCode, http.StatusText(resp.StatusCode))
 }
