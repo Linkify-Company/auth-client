@@ -40,6 +40,7 @@ func (s *Service) Check(r *http.Request) (*AuthData, int, error) {
 	for _, cookie := range r.Cookies() {
 		req.AddCookie(cookie)
 	}
+	req.Header = r.Header
 	req.TLS = r.TLS
 
 	resp, err := client.Do(req)
