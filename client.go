@@ -3,6 +3,7 @@ package domain
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Linkify-Company/common_utils/errify"
 	"net/http"
 	"time"
 )
@@ -25,7 +26,7 @@ func NewClient(
 	}
 }
 
-func (s *Service) Check(r *http.Request) (*AuthData, int, error) {
+func (s *Service) Check(r *http.Request) (*AuthData, errify.IError) {
 	client := &http.Client{Timeout: s.timeout}
 	req, err := http.NewRequest(
 		http.MethodGet,
@@ -33,7 +34,7 @@ func (s *Service) Check(r *http.Request) (*AuthData, int, error) {
 		nil,
 	)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return nil, errify.NewInternalServerError(err.Error(), "Check/NewRequest")
 	}
 	req.Header.Set("Content-Type", "application/json")
 
@@ -45,11 +46,17 @@ func (s *Service) Check(r *http.Request) (*AuthData, int, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return nil, errify.NewInternalServerError(err.Error(), "Check/Do")
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, resp.StatusCode, nil
+		if resp.StatusCode == http.StatusUnauthorized {
+			return nil, errify.NewUnauthorizedError("unauthorized", "Unauthorized", "Check/Do (StatusCode)")
+		}
+		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusMethodNotAllowed {
+			return nil, errify.NewInternalServerError("Auth service not found", "Check/Do (StatusCode)")
+		}
+		return nil, errify.NewInternalServerError(resp.Status, "Check/Do (StatusCode)")
 	}
 
 	auth := struct {
@@ -57,11 +64,11 @@ func (s *Service) Check(r *http.Request) (*AuthData, int, error) {
 	}{}
 	err = json.NewDecoder(resp.Body).Decode(&auth)
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return nil, errify.NewInternalServerError(err.Error(), "Check/NewDecoder")
 	}
 	if auth.Value.ID <= 0 {
-		return nil, http.StatusInternalServerError, fmt.Errorf("user is empty")
+		return nil, errify.NewInternalServerError("user is empty", "Check")
 	}
 
-	return &auth.Value, http.StatusOK, err
+	return &auth.Value, nil
 }

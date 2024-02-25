@@ -2,12 +2,13 @@ package domain
 
 import (
 	"context"
-	"log/slog"
+	"github.com/Linkify-Company/common_utils/logger"
+	"github.com/Linkify-Company/common_utils/response"
 	"net/http"
 )
 
 type Middleware struct {
-	log *slog.Logger
+	log logger.Logger
 	*Service
 }
 
@@ -15,31 +16,15 @@ const (
 	AuthDataKey = "AuthData"
 )
 
-func NewMiddleware(log *slog.Logger, s *Service) *Middleware {
+func NewMiddleware(log logger.Logger, s *Service) *Middleware {
 	return &Middleware{log: log, Service: s}
 }
 
 func (m *Middleware) AuthHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authData, code, err := m.Check(r)
+		authData, err := m.Check(r)
 		if err != nil {
-			m.log.Info(err.Error())
-			w.WriteHeader(code)
-			return
-		}
-		if code == http.StatusUnauthorized {
-			m.log.Info("AuthHandler: User Unauthorized")
-			w.WriteHeader(code)
-			return
-		}
-		if code == http.StatusNotFound {
-			m.log.Error("Auth Server Not Found")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		if authData.ID <= 0 {
-			m.log.Error("AuthHandler: User id is nil")
-			w.WriteHeader(http.StatusInternalServerError)
+			response.Error(w, err.JoinLoc("AuthHandler"), m.log)
 			return
 		}
 
