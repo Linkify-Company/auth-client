@@ -22,7 +22,7 @@ func NewMiddleware(log logger.Logger, s *Service) *Middleware {
 
 func (m *Middleware) AuthHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authData, err := m.Check(r)
+		authData, err := m.Check(r, m.log)
 		if err != nil {
 			response.Error(w, err.JoinLoc("AuthHandler"), m.log)
 			return

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Linkify-Company/common_utils/errify"
+	"github.com/Linkify-Company/common_utils/logger"
 	"net/http"
 	"time"
 )
@@ -26,7 +27,7 @@ func NewClient(
 	}
 }
 
-func (s *Service) Check(r *http.Request) (*AuthData, errify.IError) {
+func (s *Service) Check(r *http.Request, log logger.Logger) (*AuthData, errify.IError) {
 	client := &http.Client{Timeout: s.timeout}
 	req, err := http.NewRequest(
 		http.MethodGet,
@@ -70,5 +71,10 @@ func (s *Service) Check(r *http.Request) (*AuthData, errify.IError) {
 		return nil, errify.NewInternalServerError("user is empty", "Check")
 	}
 
+	logHttpResponse(resp, log)
 	return &auth.Value, nil
+}
+
+func logHttpResponse(resp *http.Response, log logger.Logger) {
+	log.Debugf("\nURL: %s\nMETHOD: %s\nCODE: %d\nCODE_STRING: %s", resp.Request.URL, resp.Request.Method, resp.StatusCode, http.StatusText(resp.StatusCode))
 }
