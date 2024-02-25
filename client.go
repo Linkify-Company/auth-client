@@ -57,7 +57,10 @@ func (s *Service) Check(r *http.Request) (*AuthData, int, error) {
 	}
 
 	var user AuthData
-	err = json.NewDecoder(resp.Body).Decode(&Parser{Value: &user})
+	var parser = Parser{
+		Value: &user,
+	}
+	err = json.NewDecoder(resp.Body).Decode(&parser)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
