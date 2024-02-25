@@ -25,6 +25,11 @@ func NewClient(
 	}
 }
 
+type Parser struct {
+	Value   interface{} `json:"value"`
+	Message string      `json:"message"`
+}
+
 func (s *Service) Check(r *http.Request) (*AuthData, int, error) {
 	client := &http.Client{Timeout: s.timeout}
 	req, err := http.NewRequest(
@@ -52,7 +57,7 @@ func (s *Service) Check(r *http.Request) (*AuthData, int, error) {
 	}
 
 	var user AuthData
-	err = json.NewDecoder(resp.Body).Decode(&user)
+	err = json.NewDecoder(resp.Body).Decode(&Parser{Value: &user})
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
