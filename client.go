@@ -79,7 +79,7 @@ func (s *Service) Ping(log logger.Logger) (string, errify.IError) {
 	client := &http.Client{Timeout: s.timeout}
 	req, err := http.NewRequest(
 		http.MethodGet,
-		fmt.Sprint(s.host, s.port, "/srv-auth/api/v1/auth/check"),
+		fmt.Sprint(s.host, s.port, "/srv-auth/ping"),
 		nil,
 	)
 	if err != nil {
