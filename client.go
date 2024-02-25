@@ -76,5 +76,5 @@ func (s *Service) Check(r *http.Request, log logger.Logger) (*AuthData, errify.I
 }
 
 func logHttpResponse(resp *http.Response, log logger.Logger) {
-	log.Debugf("\nURL: %s\nMETHOD: %s\nCODE: %d\nCODE_STRING: %s", resp.Request.URL, resp.Request.Method, resp.StatusCode, http.StatusText(resp.StatusCode))
+	log.Debugf("\n{\n  URL: %s\n  METHOD: %s\n  CODE: %d\n  CODE_STRING: %s\n}\n", resp.Request.URL, resp.Request.Method, resp.StatusCode, http.StatusText(resp.StatusCode))
 }
