@@ -37,7 +37,7 @@ func (m *Middleware) AuthHandler(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if authData.ID == 0 {
+		if authData.ID <= 0 {
 			m.log.Error("AuthHandler: User id is nil")
 			w.WriteHeader(http.StatusInternalServerError)
 			return

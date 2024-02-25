@@ -28,7 +28,7 @@ func NewClient(
 func (s *Service) Check(r *http.Request) (*AuthData, int, error) {
 	client := &http.Client{Timeout: s.timeout}
 	req, err := http.NewRequest(
-		http.MethodPost,
+		http.MethodGet,
 		fmt.Sprint(s.host, s.port, "/srv-auth/api/v1/auth/check"),
 		nil,
 	)
@@ -55,6 +55,9 @@ func (s *Service) Check(r *http.Request) (*AuthData, int, error) {
 	err = json.NewDecoder(resp.Body).Decode(&user)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
+	}
+	if user.ID <= 0 {
+		return nil, http.StatusInternalServerError, fmt.Errorf("user is empty")
 	}
 
 	return &user, http.StatusOK, err
